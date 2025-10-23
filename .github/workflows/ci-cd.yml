@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # Step 1: Run semantic release (only on main branch pushes)
+  semantic-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: jasperbruin/aws-ml-deployment/.github/workflows/semantic-release.yml@main
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+  # Step 2: Build and push Docker image with semantic version
+  docker-build:
+    needs: [semantic-release]
+    if: always() && !cancelled() && !failure()
+    uses: jasperbruin/aws-ml-deployment/.github/workflows/docker-build.yml@main
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      semantic_version: ${{ needs.semantic-release.outputs.new_release_version }}
+
+  # Step 3: Post-deployment actions (optional)
+  notify:
+    needs: [semantic-release, docker-build]
+    if: needs.semantic-release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release summary
+        run: |
+          echo "🎉 Successfully released version ${{ needs.semantic-release.outputs.new_release_version }}"
+          echo "📦 Docker images built and pushed"
+          echo "🏷️  Git tag: ${{ needs.semantic-release.outputs.new_release_git_tag }}"

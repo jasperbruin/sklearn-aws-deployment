@@ -10,7 +10,7 @@ on:
 
 jobs:
   docker:
-    uses: jasperbruin/aws-ml-deployment/.github/workflows/docker-build-reusable.yml@main
+    uses: jasperbruin/aws-ml-deployment/.github/workflows/docker-build.yml@main
     permissions:
       contents: read
       packages: write

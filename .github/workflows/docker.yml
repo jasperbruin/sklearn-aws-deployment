@@ -1,0 +1,18 @@
+# .github/workflows/docker.yml
+name: Docker Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    uses: jasperbruin/autodevops/.github/workflows/docker-build-reusable.yml@main
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
